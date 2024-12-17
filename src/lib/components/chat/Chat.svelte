@@ -201,6 +201,40 @@
 		saveChatHandler(_chatId);
 	};
 
+	const appendMessageContent = (message: any, newContent: any) => {
+		if (!message.content) {
+			message.content = newContent;
+			return;
+	  	}
+	  	if (typeof message.content === 'string') {
+			if (typeof newContent === 'string') {
+				message.content += newContent;
+		      	} 
+		    	else if (Array.isArray(newContent)) {
+				message.content = [
+					{ type: 'text', text: message.content },
+					...newContent
+		      		];
+		    	}
+			else if (typeof newContent === 'object') {
+				message.content = [
+					{ type: 'text', text: message.content },
+					newContent
+		      		];
+		    	}
+	  	}
+		else if (Array.isArray(message.content)) {
+			if (typeof newContent === 'string') {
+				message.content.push({ type: 'text', text: newContent });
+	    		}
+			else {
+				message.content = message.content.concat(newContent);
+			}
+	  	} else {
+			console.log('Unknown message content type', message.content);
+		}
+	};
+
 	const chatEventHandler = async (event, cb) => {
 		if (event.chat_id === $chatId) {
 			await tick();
@@ -243,7 +277,7 @@
 					}
 				}
 			} else if (type === 'message') {
-				message.content += data.content;
+				appendMessageContent(message, data.content);
 			} else if (type === 'replace') {
 				message.content = data.content;
 			} else if (type === 'action') {
